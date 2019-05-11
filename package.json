@@ -1,8 +1,9 @@
 {
-  "name": "promise-queue",
-  "version": "1.0.0",
+  "name": "@mrnkr/promise-queue",
+  "version": "1.0.1",
   "description": "Turn an observable into a promise queue (ie. to allow handling of observables within sagas)",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "MrNKR",
   "license": "MIT",
   "private": false,
