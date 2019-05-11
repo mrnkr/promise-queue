@@ -56,6 +56,8 @@ function* handler(): SagaIterator {
 
 As you can see, all you need to do is provide the constructor with the observable you want. You can always transform anything that behaves like an observable to the expected shape and you'll be good to go all the same. Once you do that, all else is handled for you. Calling next in the first line of the `while (true)` we await a promise that will resolve to the next value the observable emits, as the value gets emitted and next is called again it will return another promise which will then resolve to the subsequent value and so on. It handles completion and errors pretty nicely as well. When the observable is cancelled or completed so does the promise queue.
 
+Just in case anyone needs the functionality (I know I do) it is also possible to cancel the promise queue (hence the observable) manually. Just call queue.cancel() and you'll be good to go!
+
 ### API
 
 ```typescript
@@ -63,6 +65,7 @@ interface PromiseQueue<T> {
   isComplete: boolean;
   cancelled: boolean;
   next(): Promise<T>;
+  cancel(): void;
 }
 ```
 

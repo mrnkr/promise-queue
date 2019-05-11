@@ -27,21 +27,21 @@ export class PromiseQueue<T> {
     return new Promise<T>((resolve, reject) => { this.dispatch.enqueue({ resolve, reject }); });
   }
 
-  private publish = (val: T) => {
-    if (this.hasPromiseToResolve()) {
-      return this.dispatch.next()!.resolve(val);
-    }
-
-    this.actions.enqueue(Promise.resolve(val));
-  }
-
-  private cancel = (error: Error) => {
+  public cancel = (error: Error) => {
     this.subscription.unsubscribe();
     this.cancelled = true;
 
     while (this.hasPromiseToResolve()) {
       this.dispatch.next()!.reject(error);
     }
+  }
+
+  private publish = (val: T) => {
+    if (this.hasPromiseToResolve()) {
+      return this.dispatch.next()!.resolve(val);
+    }
+
+    this.actions.enqueue(Promise.resolve(val));
   }
 
   private complete = () => {

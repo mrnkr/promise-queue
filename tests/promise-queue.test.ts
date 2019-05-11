@@ -98,4 +98,34 @@ describe('promise queue tests', () => {
       .silentRun();
   });
 
+  it('should be possible to cancel the queue (not from the observable)', () => {
+    let n = 1;
+
+    const interval = setInterval(
+      () => {
+        if (!testPromiseQueue.isComplete && !testPromiseQueue.cancelled) {
+          behaviorSubject.next(n);
+          n = n + 1;
+        }
+      },
+      2,
+    );
+
+    setTimeout(
+      () => {
+        testPromiseQueue.cancel(Error('Hehe'));
+        clearInterval(interval);
+      },
+      8,
+    );
+
+    return expectSaga(handler)
+      .put({ type: 'EMIT', payload: { val: 1 } })
+      .put({ type: 'EMIT', payload: { val: 2 } })
+      .put({ type: 'EMIT', payload: { val: 3 } })
+      .not.put({ type: 'EMIT', payload: { val: 4 } })
+      .put({ type: 'ERROR', error: Error('Hehe') })
+      .silentRun();
+  });
+
 });
