@@ -1,21 +1,21 @@
 import { Queue, QueueImpl } from '@mrnkr/simple-queue';
-import { Observable, Subscription, PromiseFunctions } from './typings';
+import { Action, Observable, Subscription, PromiseFunctions } from './typings';
 
 export class PromiseQueue<T> {
 
   public isComplete: boolean;
   public cancelled: boolean;
 
-  private actions: Queue<Promise<T>>;
-  private dispatch: Queue<PromiseFunctions<T>>;
+  private actions: Queue<Promise<Action<T>>>;
+  private dispatch: Queue<PromiseFunctions<Action<T>>>;
   private subscription: Subscription;
 
   constructor(obs: Observable<T>) {
     this.isComplete = false;
     this.cancelled = false;
 
-    this.actions = new QueueImpl<Promise<T>>();
-    this.dispatch = new QueueImpl<PromiseFunctions<T>>();
+    this.actions = new QueueImpl<Promise<Action<T>>>();
+    this.dispatch = new QueueImpl<PromiseFunctions<Action<T>>>();
     this.subscription = obs.subscribe(this.publish, this.cancel, this.complete);
   }
 
@@ -24,7 +24,11 @@ export class PromiseQueue<T> {
       return this.actions.next()!;
     }
 
-    return new Promise<T>((resolve, reject) => { this.dispatch.enqueue({ resolve, reject }); });
+    return new Promise<Action<T>>(
+      (resolve, reject) => {
+        this.dispatch.enqueue({ resolve, reject });
+      },
+    );
   }
 
   public cancel = (error: Error) => {
@@ -36,16 +40,25 @@ export class PromiseQueue<T> {
     }
   }
 
-  private publish = (val: T) => {
+  private publish = (value: T) => {
+    const valueToEmit: Action<T> = { value, done: false };
+
     if (this.hasPromiseToResolve()) {
-      return this.dispatch.next()!.resolve(val);
+      return this.dispatch.next()!.resolve(valueToEmit);
     }
 
-    this.actions.enqueue(Promise.resolve(val));
+    this.actions.enqueue(Promise.resolve(valueToEmit));
   }
 
   private complete = () => {
     this.isComplete = true;
+    const valueToEmit: Action<T> = { value: null, done: true };
+
+    if (this.hasPromiseToResolve()) {
+      return this.dispatch.next()!.resolve(valueToEmit);
+    }
+
+    this.actions.enqueue(Promise.resolve(valueToEmit));
   }
 
   private hasPromiseToResolve = () => {

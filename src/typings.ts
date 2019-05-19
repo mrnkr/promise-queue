@@ -10,6 +10,11 @@ export interface Observable<T> {
   ): Subscription;
 }
 
+export interface Action<T> {
+  value: T | null;
+  done: boolean;
+}
+
 export interface PromiseFunctions<T> {
   resolve: (value?: T | PromiseLike<T> | undefined) => void;
   reject: (reason?: any) => void;

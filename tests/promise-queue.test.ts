@@ -14,10 +14,15 @@ describe('promise queue tests', () => {
     handler = function* (): SagaIterator {
       try {
         while (true) {
-          const val = yield call(testPromiseQueue.next);
+          const { value, done } = yield call(testPromiseQueue.next);
+
+          if (done) {
+            break;
+          }
+
           yield fork(
             function* (val: number) { yield put({ type: 'EMIT', payload: { val } }); },
-            val,
+            value,
           );
         }
       } catch (err) {
@@ -94,6 +99,28 @@ describe('promise queue tests', () => {
 
     return expectSaga(handler)
       .put({ type: 'EMIT', payload: { val: 27 } })
+      .put({ type: 'COMPLETE' })
+      .silentRun();
+  });
+
+  it('should take last value and completion', () => {
+    setTimeout(
+      () => {
+        behaviorSubject.next(27);
+
+        setTimeout(
+          () => {
+            behaviorSubject.next(28);
+            behaviorSubject.complete();
+          },
+          2,
+        );
+      },
+      2,
+    );
+
+    return expectSaga(handler)
+      .put({ type: 'EMIT', payload: { val: 28 } })
       .put({ type: 'COMPLETE' })
       .silentRun();
   });

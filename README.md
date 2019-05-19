@@ -1,12 +1,31 @@
 # Promise queue
 
+[![NPM version][npm-image]][npm-url]
+[![Downloads][downloads-image]][npm-url]
+[![Twitter Follow][twitter-image]][twitter-url]
+
+[npm-image]:http://img.shields.io/npm/v/@mrnkr/promise-queue.svg
+[npm-url]:https://npmjs.org/package/@mrnkr/promise-queue
+[downloads-image]:http://img.shields.io/npm/dm/@mrnkr/promise-queue.svg
+[twitter-image]:https://img.shields.io/twitter/follow/xmr_nkr.svg?style=social&label=Follow%20me
+[twitter-url]:https://twitter.com/xmr_nkr
+
 ### Introduction
+
 Perhaps you use redux-observable. That's good, I love it. However, your team may find it a little bit too hard to adapt to rxjs, we may understand it, they may not or perhaps they don't even care. Maybe you just don't use observables, you don't need observables for 90% of the things your app should do but there is that one functionality that screams observable. If you're using redux-saga and face this issue, this will help!
 
+### Installation
+
+```zsh
+yarn add @mrnkr/promise-queue
+```
+
 #### Disclaimer
+
 This already exists, there is a library with a very similar implementation and identical name. Problem with it? Does not have unit tests and I wanted to understand it before I used it (and needed typings, I love my types) so I went ahead and rewrote it. As I did I found stuff in the original library that, given the subtle differences between the implementations, was unnecessary. You could say this is a bit of a simplified version of it, it is more strict in the sense that it has unit tests and will continue to get them as I realize what I did not consider at first, blah, blah, blah. I had fun making this myself, I feel like I learnt a lot and now I hope it will help someone out there!
 
 ### Quick start
+
 The way to use this is quite simple really, all complexity is hidden from you so you don't need to worry. That's something I wanted to add to this the original library lacked. I grabbed the basic definition of Observable from rxjs and copied it (don't want it changing if it ever changes in that library, however unlikely) and that is what you pass to the constructor.
 
 This is what those observables should look like in typescript:
@@ -38,18 +57,21 @@ function* handler(): SagaIterator {
 
   try {
     while (true) {
-      const val = yield call(promiseQueue.next);
+      const { value, done } = yield call(promiseQueue.next);
+
+      if (done)
+        break;
+
       yield fork(
         function* (val: number) { yield put({ type: 'EMIT', payload: { val } }); },
-        val,
+        value,
       );
     }
   } catch (err) {
     yield put({ type: 'ERROR', error: err });
   } finally {
-    if (promiseQueue.isComplete) {
+    if (promiseQueue.isComplete)
       yield put({ type: 'COMPLETE' });
-    }
   }
 }
 ```
@@ -64,14 +86,14 @@ Just in case anyone needs the functionality (I know I do) it is also possible to
 interface PromiseQueue<T> {
   isComplete: boolean;
   cancelled: boolean;
-  next(): Promise<T>;
+  next(): Promise<{ value: T; done: boolean }>;
   cancel(): void;
 }
 ```
 
 ### A litte insight
 
-This is implemented using two queues: `actions: Queue<Promise<T>>` which enqueues promises which resolve to specific values and `dispatch: Queue<PromiseFunctions<T>>` which enqueues pointers to the resolve and reject functions that promises are built with.
+This is implemented using two queues: `actions: Queue<Promise<{ value: T; done: boolean }>>` which enqueues promises which resolve to specific values and `dispatch: Queue<PromiseFunctions<{ value: T; done: boolean }>>` which enqueues pointers to the resolve and reject functions that promises are built with.
 
 When next() is first called it returns a promise whose resolve and reject will be enqueued in dispatch. Since the yield keyword is used execution gets blocked in that line until it resolves, hence, until the observable emits a value.
 
@@ -82,3 +104,7 @@ The publishing mechanism internally allows for this to happen by behaving in two
 Observables can be cancelled. This implementation handles errors in the inner observable as a reason for cancellation. Once the PromiseQueue is forcefully terminated all reject functions in dispatch are called with the error that caused it. When the observable is completed only the isComplete flag gets updated to reflect it.
 
 Although I was not the one to come up with this logic I feel happy that I was able to understand it and offer a simpler implementation of it. Simpler and thanks to my unit tests possibly more robust. This is a really useful structure, really clever, hopefully you can get something out of it like I did!
+
+### Update 1.1.0
+
+I was having some trouble notifying when the observable was done, everything was functional but I could not get the notification. That's why I decided to make this adhere to the interface Iterators use and wrap what the promises resolve to in objects containing the value and a flag indicating whether the observable completed.

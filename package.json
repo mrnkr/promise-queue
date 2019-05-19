@@ -7,8 +7,17 @@
   "author": "MrNKR",
   "license": "MIT",
   "private": false,
+  "repository": "https://github.com/mrnkr/promise-queue",
+  "keywords": [
+    "rxjs",
+    "rx",
+    "sagas",
+    "promise",
+    "async"
+  ],
   "scripts": {
     "build": "rm -rf dist && tsc",
+    "do-publish": "yarn build && yarn publish --access=public",
     "test": "jest"
   },
   "dependencies": {
