@@ -1,6 +1,9 @@
 import { Queue, QueueImpl } from '@mrnkr/simple-queue';
 import { Action, Observable, Subscription, PromiseFunctions } from './typings';
 
+/**
+ * @deprecated since version 1.1.1
+ */
 export class PromiseQueue<T> {
 
   public isComplete: boolean;

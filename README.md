@@ -2,13 +2,12 @@
 
 [![NPM version][npm-image]][npm-url]
 [![Downloads][downloads-image]][npm-url]
-[![Twitter Follow][twitter-image]][twitter-url]
 
 [npm-image]:http://img.shields.io/npm/v/@mrnkr/promise-queue.svg
 [npm-url]:https://npmjs.org/package/@mrnkr/promise-queue
 [downloads-image]:http://img.shields.io/npm/dm/@mrnkr/promise-queue.svg
-[twitter-image]:https://img.shields.io/twitter/follow/xmr_nkr.svg?style=social&label=Follow%20me
-[twitter-url]:https://twitter.com/xmr_nkr
+
+**DEPRECATED** If you are looking at this because you want to understand what I did, jump to the "A little insight" section. If you are looking at this because you actually need to work with streams within your sagas I recommend you check out [channels](https://redux-saga.js.org/docs/advanced/Channels.html).
 
 ### Introduction
 
